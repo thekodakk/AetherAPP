@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="modern-dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstralPaws Ultra - Modern İletişim ve Topluluk Platformu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=2.2.1">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='lucide.js') }}"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="theme-modern-dark">
+
+    <!-- Ambient Cosmic Aurora Mesh Background -->
+    <div class="ambient-mesh-bg">
+        <div class="ambient-orb orb-1"></div>
+        <div class="ambient-orb orb-2"></div>
+        <div class="ambient-orb orb-3"></div>
+    </div>
+
+    <!-- Account Status Alert Banner (e.g. Grace Period Pending Deletion) -->
+    <div id="account-status-banner" class="account-alert-banner" style="display: none;">
+        <div class="banner-content">
+            <span class="banner-icon"><i data-lucide="alert-triangle" class="icon-sm"></i></span>
+            <span id="account-status-banner-text">Hesabınız silinmek üzere planlanmıştır.</span>
+            <button type="button" class="btn btn-small btn-banner-action" id="btn-cancel-deletion-banner"><i data-lucide="undo-2" class="icon-xs"></i> Silme Talebini İptal Et</button>
+        </div>
+    </div>
+
+    <!-- Auth Screen (Astral Glass Card) -->
+    <div id="auth-screen" class="auth-container">
+        <div class="auth-card">
+            <div class="auth-brand">
+                <div class="brand-logo-icon">
+                    <svg class="brand-paw-svg" viewBox="0 0 32 32" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 14C13.2 14 11 16.5 11 19.5C11 23 14 26 16 27C18 26 21 23 21 19.5C21 16.5 18.8 14 16 14Z" fill="url(#pawGrad)" stroke="var(--primary-light)"/>
+                        <ellipse cx="9" cy="12" rx="2.5" ry="3.5" fill="url(#pawGrad)" stroke="var(--primary-light)"/>
+                        <ellipse cx="15" cy="8" rx="2.5" ry="3.5" fill="url(#pawGrad)" stroke="var(--primary-light)"/>
+                        <ellipse cx="21" cy="9" rx="2.5" ry="3.5" fill="url(#pawGrad)" stroke="var(--primary-light)"/>
+                        <ellipse cx="25" cy="13" rx="2" ry="3" fill="url(#pawGrad)" stroke="var(--primary-light)"/>
+                        <defs>
+                            <linearGradient id="pawGrad" x1="6" y1="5" x2="26" y2="27" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#8b5cf6"/>
+                                <stop offset="1" stop-color="#3b82f6"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h1>ASTRAL<span class="badge-luxe">PAWS</span></h1>
+                <p class="brand-tagline">Geleceğin Güvenli İletişim ve Topluluk Deneyimi</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login-form-container">
+                <h2>Hoş Geldiniz</h2>
+                <p class="auth-sub">AstralPaws dünyasına tekrar bağlanın.</p>
+                
+                <!-- Main Login Step -->
+                <form id="login-form">
+                    <div class="input-group">
+                        <label for="login-username">E-posta veya Kullanıcı Adı</label>
+                        <div class="input-with-icon">
+                            <span class="field-icon"><i data-lucide="user"></i></span>
+                            <input type="text" id="login-username" required placeholder="E-posta veya kullanıcı adı..." autocomplete="username">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="login-password">Parola</label>
+                        <div class="input-with-icon">
+                            <span class="field-icon"><i data-lucide="lock"></i></span>
+                            <input type="password" id="login-password" required placeholder="Parolanızı girin..." autocomplete="current-password">
+                            <button type="button" class="btn-toggle-pwd" data-target="login-password" title="Parolayı Göster/Gizle"><i data-lucide="eye"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Remember Me & Forgot Password Row -->
+                    <div class="auth-options-row">
+                        <label class="remember-checkbox-label">
+                            <input type="checkbox" id="login-remember" checked>
+                            <span class="custom-checkbox"></span>
+                            <span class="checkbox-text">Beni Hatırla (30 Gün)</span>
+                        </label>
+                        <a href="#" id="link-forgot-password" class="auth-forgot-link">Şifremi Unuttum?</a>
+                    </div>
+
+                    <div class="error-msg" id="login-error"></div>
+                    <button type="submit" class="btn primary-btn btn-full btn-glow" id="btn-login-submit"><i data-lucide="log-in" class="icon-sm"></i> Giriş Yap</button>
+                    
+                    <div class="quick-demo-fill">
+                        <button type="button" class="btn-demo" id="btn-demo-user1">Demo (The_kodak)</button>
+                        <button type="button" class="btn-demo" id="btn-demo-user2">Demo (thekodak)</button>
+                    </div>
+                    <p class="switch-auth">Hesabınız yok mu? <a href="#" id="show-register">Kayıt Ol</a></p>
+                </form>
+
+                <!-- 2FA Prompt Step during Login -->
+                <form id="login-2fa-form" style="display: none;">
+                    <div class="twofa-prompt-wrap">
+                        <div class="twofa-icon"><i data-lucide="shield-check"></i></div>
+                        <h3>İki Aşamalı Doğrulama</h3>
+                        <p class="twofa-desc">Authenticator uygulamanızdaki 6 haneli kodu veya bir kurtarma kodunu girin:</p>
+                        
+                        <div class="input-group" style="text-align: center;">
+                            <label for="login-2fa-code" id="twofa-code-label">6 Haneli Kod</label>
+                            <input type="text" id="login-2fa-code" class="otp-input" maxlength="12" placeholder="• • • • • •" required autocomplete="one-time-code" autofocus>
+                        </div>
+
+                        <div class="auth-options-row" style="justify-content: center; margin-bottom: 16px;">
+                            <label class="remember-checkbox-label">
+                                <input type="checkbox" id="login-trust-device" checked>
+                                <span class="custom-checkbox"></span>
+                                <span class="checkbox-text">Bu Cihaza Güven (30 Gün)</span>
+                            </label>
+                        </div>
+
+                        <div class="error-msg" id="login-2fa-error"></div>
+                        <button type="submit" class="btn primary-btn btn-full btn-glow" id="btn-login-2fa-submit"><i data-lucide="shield-check" class="icon-sm"></i> Doğrula ve Giriş Yap</button>
+                        
+                        <div style="margin-top: 14px; display: flex; justify-content: space-between; font-size: 13px;">
+                            <a href="#" id="btn-toggle-recovery-mode" style="color: var(--primary); display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="key-round" class="icon-xs"></i> Kurtarma Kodu Kullan</a>
+                            <a href="#" id="btn-back-from-2fa" style="color: var(--text-dim); display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="arrow-left" class="icon-xs"></i> Geri Dön</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form-container" style="display: none;">
+                <h2>Yeni Hesap Oluştur</h2>
+                <p class="auth-sub">AstralPaws topluluğunun bir parçası olun.</p>
+                <form id="register-form">
+                    <div class="input-group">
+                        <label for="register-email">E-posta Adresi <span class="req-star">*</span></label>
+                        <div class="input-with-icon">
+                            <span class="field-icon"><i data-lucide="mail"></i></span>
+                            <input type="email" id="register-email" required placeholder="ornek@domain.com" autocomplete="email">
+                        </div>
+                        <span class="field-hint">Doğrulama kodu <strong>contact@example.com</strong> adresinden iletilecektir.</span>
+                    </div>
+                    <div class="input-group">
+                        <label for="register-username">Kullanıcı Adı <span class="req-star">*</span></label>
+                        <div class="input-with-icon">
+                            <span class="field-icon"><i data-lucide="at-sign"></i></span>
+                            <input type="text" id="register-username" required placeholder="kullanici_adi" autocomplete="username" maxlength="30">
+                        </div>
+                        <span class="field-hint">Benzersizdir. 3-30 karakter, harf, rakam, alt çizgi ve tire içerir.</span>
+                    </div>
+                    <div class="input-group">
+                        <label for="register-displayname">Görünen İsim (Opsiyonel)</label>
+                        <div class="input-with-icon">
+                            <span class="field-icon"><i data-lucide="user-round"></i></span>
+                            <input type="text" id="register-displayname" placeholder="Profilde görünecek isim..." maxlength="50">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="register-password">Parola <span class="req-star">*</span></label>
+                        <div class="input-with-icon">
+                            <span class="field-icon"><i data-lucide="lock"></i></span>
+                            <input type="password" id="register-password" required placeholder="En az 6 karakter..." autocomplete="new-password">
+                            <button type="button" class="btn-toggle-pwd" data-target="register-password" title="Parolayı Göster/Gizle"><i data-lucide="eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="register-password-confirm">Parola Tekrarı <span class="req-star">*</span></label>
+                        <div class="input-with-icon">
+                            <span class="field-icon"><i data-lucide="lock-keyhole"></i></span>
+                            <input type="password" id="register-password-confirm" required placeholder="Parolanızı tekrar girin..." autocomplete="new-password">
+                            <button type="button" class="btn-toggle-pwd" data-target="register-password-confirm" title="Parolayı Göster/Gizle"><i data-lucide="eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="error-msg" id="register-error"></div>
+                    <button type="submit" class="btn primary-btn btn-full btn-glow" id="btn-register-submit"><i data-lucide="user-plus" class="icon-sm"></i> Kayıt Ol ve Doğrula</button>
+                    <p class="switch-auth">Zaten bir hesabınız var mı? <a href="#" id="show-login">Giriş Yap</a></p>
+                </form>
+            </div>
+
+            <!-- Email Verification Form -->
+            <div id="verify-form-container" style="display: none;">
+                <div class="verify-icon-wrap"><i data-lucide="mail-check"></i></div>
+                <h2>E-posta Doğrulama</h2>
+                <p class="auth-sub">
+                    <strong>contact@example.com</strong> tarafından aşağıdaki adrese 6 haneli bir doğrulama kodu gönderdik:
+                </p>
+                <div class="verify-target-badge" id="verify-email-display">user@example.com</div>
+
+                <form id="verify-form">
+                    <div class="input-group" style="text-align: center;">
+                        <label for="verify-code">6 Haneli Doğrulama Kodu</label>
+                        <input type="text" id="verify-code" class="otp-input" maxlength="6" placeholder="• • • • • •" required autocomplete="one-time-code" autofocus>
+                    </div>
+
+                    <div class="error-msg" id="verify-error"></div>
+                    <div class="success-msg" id="verify-success" style="display: none;"></div>
+
+                    <button type="submit" class="btn primary-btn btn-full btn-glow" id="btn-verify-submit"><i data-lucide="check-circle-2" class="icon-sm"></i> Doğrula ve Giriş Yap</button>
+
+                    <div class="verify-resend-row">
+                        <span class="resend-label">Kod almadınız mı?</span>
+                        <button type="button" class="btn-resend" id="btn-resend-code" disabled><i data-lucide="refresh-cw" class="icon-xs"></i> Tekrar Gönder (<span id="resend-countdown">60</span>s)</button>
+                    </div>
+
+                    <p class="switch-auth"><a href="#" id="show-login-from-verify" style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="arrow-left" class="icon-xs"></i> Giriş Ekranına Dön</a></p>
+                </form>
+            </div>
+
+            <!-- Forgot Password Form -->
+            <div id="forgot-form-container" style="display: none;">
+                <div class="verify-icon-wrap"><i data-lucide="key-round"></i></div>
+                <h2>Şifremi Unuttum</h2>
+                <p class="auth-sub">Kayıtlı e-posta adresinizi girin. Size güvenli bir şifre sıfırlama bağlantısı göndereceğiz.</p>
+                <form id="forgot-password-form">
+                    <div class="input-group">
+                        <label for="forgot-email">E-posta Adresi</label>
+                        <div class="input-with-icon">
+                            <span class="field-icon"><i data-lucide="mail"></i></span>
+                            <input type="email" id="forgot-email" required placeholder="ornek@domain.com" autocomplete="email">
+                        </div>
+                    </div>
+                    <div class="error-msg" id="forgot-error"></div>
+                    <div class="success-msg" id="forgot-success" style="display: none;"></div>
+                    <button type="submit" class="btn primary-btn btn-full btn-glow" id="btn-forgot-submit"><i data-lucide="send" class="icon-sm"></i> Sıfırlama Bağlantısı Gönder</button>
+                    <p class="switch-auth"><a href="#" id="show-login-from-forgot" style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="arrow-left" class="icon-xs"></i> Giriş Ekranına Dön</a></p>
+                </form>
+            </div>
+
+            <!-- Reset Password Form -->
+            <div id="reset-form-container" style="display: none;">
+                <div class="verify-icon-wrap"><i data-lucide="lock"></i></div>
+                <h2>Yeni Şifre Belirle</h2>
+                <p class="auth-sub">Hesabınız için güçlü ve yeni bir şifre oluşturun.</p>
+                <form id="reset-password-form">
+                    <input type="hidden" id="reset-token-input" value="">
+                    <div class="input-group">
+                        <label for="reset-password">Yeni Parola</label>
+                        <div class="input-with-icon">
+                            <span class="field-icon"><i data-lucide="lock"></i></span>
+                            <input type="password" id="reset-password" required placeholder="En az 6 karakter..." autocomplete="new-password">
+                            <button type="button" class="btn-toggle-pwd" data-target="reset-password" title="Parolayı Göster/Gizle"><i data-lucide="eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="reset-password-confirm">Yeni Parola Tekrarı</label>
+                        <div class="input-with-icon">
+                            <span class="field-icon"><i data-lucide="lock-keyhole"></i></span>
+                            <input type="password" id="reset-password-confirm" required placeholder="Parolanızı tekrar girin..." autocomplete="new-password">
+                            <button type="button" class="btn-toggle-pwd" data-target="reset-password-confirm" title="Parolayı Göster/Gizle"><i data-lucide="eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="error-msg" id="reset-error"></div>
+                    <div class="success-msg" id="reset-success" style="display: none;"></div>
+                    <button type="submit" class="btn primary-btn btn-full btn-glow" id="btn-reset-submit"><i data-lucide="check" class="icon-sm"></i> Şifremi Güncelle</button>
+                    <p class="switch-auth"><a href="#" id="show-login-from-reset" style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="arrow-left" class="icon-xs"></i> Giriş Ekranına Dön</a></p>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Main App Screen (Structured Dashboard Layout) -->
+    <div id="app-screen" class="app-container" style="display: none;">
+        
+        <!-- 1. Server Column (Far Left) -->
+        <nav class="server-sidebar" aria-label="Servers">
+            <div class="server-icon active" id="nav-home" title="Direct Messages & Home">
+                <span class="icon-svg"><i data-lucide="message-square"></i></span>
+                <div class="server-active-pill"></div>
+            </div>
+            
+            <div class="server-icon ai-server-icon" id="nav-ai-bot" title="Astral AI Asistan">
+                <span><i data-lucide="bot"></i></span>
+                <div class="server-active-pill"></div>
+            </div>
+
+            <div class="server-separator"></div>
+            
+            <div id="server-list" class="server-list-scroll">
+                <!-- Servers populated via JS -->
+            </div>
+            
+            <div class="server-icon action-icon" id="add-server-btn" title="Sunucu Ekle veya Katıl">
+                <i data-lucide="plus"></i>
+            </div>
+
+            <div class="server-icon soundboard-nav-icon" id="nav-soundboard-btn" title="Ses Tahtası">
+                <span><i data-lucide="music-2"></i></span>
+            </div>
+        </nav>
+
+        <!-- 2. Channels & Friends Sidebar -->
+        <aside class="sidebar" id="secondary-sidebar">
+            <div class="sidebar-header" id="sidebar-header">
+                <div class="header-title-wrap">
+                    <h2 id="sidebar-title">AstralPaws</h2>
+                    <span class="server-badge" id="sidebar-server-badge" style="display: none;">Server</span>
+                    <i data-lucide="chevron-down" class="header-chevron" id="sidebar-chevron" style="display: none; width: 14px; height: 14px; color: var(--text-dim); margin-left: 2px;"></i>
+                </div>
+                <div class="sidebar-header-actions" id="server-header-actions" style="display: none;">
+                    <button class="icon-btn" id="server-settings-btn" title="Sunucu Ayarları"><i data-lucide="settings"></i></button>
+                </div>
+            </div>
+
+            <!-- Home Sidebar (Friends & DMs) -->
+            <div id="home-view" class="sidebar-content">
+                <div class="nav-section">
+                    <div class="nav-item active" id="nav-friends-tab">
+                        <div class="nav-icon"><i data-lucide="users"></i></div>
+                        <span>Arkadaşlar</span>
+                        <span class="nav-badge" id="pending-badge" style="display: none;">0</span>
+                    </div>
+                    <div class="nav-item" id="nav-ai-chat-tab">
+                        <div class="nav-icon"><i data-lucide="bot"></i></div>
+                        <span>Astral AI</span>
+                        <span class="pro-tag">BOT</span>
+                    </div>
+                </div>
+
+                <div class="sidebar-section-header">
+                    <span>DİREKT MESAJLAR</span>
+                    <button class="icon-btn" id="add-friend-btn" title="Arkadaş Ekle"><i data-lucide="user-plus"></i></button>
+                </div>
+
+                <div class="channel-list" id="sidebar-dm-list">
+                    <!-- DMs list -->
+                </div>
+
+                <div class="sidebar-section-header" style="margin-top: 14px;">
+                    <span>GRUP SOHBETLERİ</span>
+                    <button class="icon-btn" id="btn-create-group" title="Yeni Grup Oluştur"><i data-lucide="plus"></i></button>
+                </div>
+
+                <div class="channel-list" id="sidebar-group-list">
+                    <!-- Group chats list -->
+                </div>
+            </div>
+
+            <!-- Server Channels Sidebar -->
+            <div id="server-view" class="sidebar-content" style="display: none;">
+                <div class="sidebar-section-header">
+                    <span>KANALLAR</span>
+                    <button class="icon-btn" id="add-channel-btn" title="Kanal Oluştur"><i data-lucide="plus"></i></button>
+                </div>
+                <div class="channel-list" id="channel-list">
+                    <!-- Channels list -->
+                </div>
+            </div>
+
+            <!-- User Control Dock (Bottom Left) -->
+            <div class="user-dock">
+                <div class="user-info" id="btn-open-my-profile" title="Profilimi Görüntüle">
+                    <div class="avatar-wrap">
+                        <div class="avatar" id="my-avatar">A</div>
+                        <div class="status-indicator status-online" id="my-status-dot"></div>
+                    </div>
+                    <div class="user-text">
+                        <span class="username" id="my-username">AstralUser</span>
+                        <span class="user-custom-status" id="my-custom-status">✨ AstralPaws</span>
+                    </div>
+                </div>
+                <div class="user-actions">
+                    <button class="icon-btn" id="open-settings-btn" title="Hesap Ayarları"><i data-lucide="settings"></i></button>
+                    <button class="icon-btn btn-danger-hover" id="btn-dock-logout" title="Çıkış Yap"><i data-lucide="log-out"></i></button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 3. Main Stage / Content Area -->
+        <main class="main-content">
+            
+            <!-- Top App Navigation Header -->
+            <header class="top-nav-header">
+                <div class="current-channel-info">
+                    <div class="channel-icon-pill" id="header-icon-pill"><i data-lucide="hash"></i></div>
+                    <div>
+                        <h2 id="header-channel-title">genel-sohbet</h2>
+                        <span class="header-channel-desc" id="header-channel-desc">AstralPaws topluluğu genel sohbet alanı</span>
+                    </div>
+                </div>
+
+                <div class="header-tools">
+                    <div class="search-bar-wrap">
+                        <input type="text" id="chat-search-input" placeholder="Mesajlarda ara..." autocomplete="off">
+                        <span class="search-clear-btn" id="chat-search-clear" style="display: none;"><i data-lucide="x" class="icon-xs"></i></span>
+                    </div>
+                    <button class="icon-btn" id="btn-group-info" style="display: none;" title="Grup Bilgileri & Üyeler"><i data-lucide="users"></i></button>
+                    <button class="icon-btn" id="btn-open-pins" title="Sabitlenmiş Mesajlar"><i data-lucide="pin"></i></button>
+                    <button class="icon-btn" id="btn-open-soundboard" title="Ses Tahtası"><i data-lucide="music-2"></i></button>
+                    <button class="icon-btn" id="btn-start-dm-voice-call" style="display: none;" title="Sesli Arama Başlat"><i data-lucide="phone"></i></button>
+                </div>
+            </header>
+
+            <!-- Dashboard / Friends View Screen -->
+            <div id="friends-dashboard" class="dashboard-pane" style="display: none;">
+                <div class="dashboard-header">
+                    <div class="dash-title-wrap">
+                        <span class="dash-icon"><i data-lucide="users"></i></span>
+                        <h2>Arkadaşlar</h2>
+                    </div>
+                    <div class="dashboard-tabs-scroll">
+                        <button class="dash-tab active" data-tab="online">
+                            <i data-lucide="circle-dot" class="icon-xs tab-icon-online"></i> Çevrimiçi <span class="tab-badge" id="tab-cnt-online">0</span>
+                        </button>
+                        <button class="dash-tab" data-tab="all">
+                            <i data-lucide="users" class="icon-xs"></i> Tümü <span class="tab-badge" id="tab-cnt-all">0</span>
+                        </button>
+                        <button class="dash-tab" data-tab="pending_in">
+                            <i data-lucide="inbox" class="icon-xs"></i> Gelen İstekler <span class="tab-badge badge-highlight" id="tab-cnt-pending-in" style="display: none;">0</span>
+                        </button>
+                        <button class="dash-tab" data-tab="pending_out">
+                            <i data-lucide="send" class="icon-xs"></i> Giden İstekler <span class="tab-badge" id="tab-cnt-pending-out" style="display: none;">0</span>
+                        </button>
+                        <button class="dash-tab" data-tab="close">
+                            <i data-lucide="heart" class="icon-xs tab-icon-heart"></i> Yakın Arkadaşlar <span class="tab-badge" id="tab-cnt-close">0</span>
+                        </button>
+                        <button class="dash-tab" data-tab="favorites">
+                            <i data-lucide="star" class="icon-xs tab-icon-star"></i> Favoriler <span class="tab-badge" id="tab-cnt-favorites">0</span>
+                        </button>
+                        <button class="dash-tab" data-tab="suggestions">
+                            <i data-lucide="sparkles" class="icon-xs tab-icon-sparkle"></i> Öneriler <span class="tab-badge" id="tab-cnt-suggestions">0</span>
+                        </button>
+                        <button class="dash-tab" data-tab="blocked">
+                            <i data-lucide="shield-alert" class="icon-xs"></i> Engellenenler <span class="tab-badge" id="tab-cnt-blocked">0</span>
+                        </button>
+                        <button class="dash-tab add-friend-tab" data-tab="add">
+                            <i data-lucide="user-plus" class="icon-xs"></i> Arkadaş Ekle
+                        </button>
+                    </div>
+                </div>
+
+                <div class="dashboard-body">
+                    <!-- Live Search Bar -->
+                    <div class="friends-filter-bar" id="friends-filter-bar">
+                        <div class="input-with-icon search-box-fluid">
+                            <span class="field-icon"><i data-lucide="search"></i></span>
+                            <input type="text" id="filter-friends-input" placeholder="Arkadaş veya isteklerde ara..." autocomplete="off">
+                            <button type="button" class="btn-clear-search" id="btn-clear-friends-search" style="display: none;"><i data-lucide="x" class="icon-xs"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- 1. Friends List Pane (Online, All, Close, Favorites) -->
+                    <div id="dash-pane-friends" class="dash-content-pane active">
+                        <div class="friends-section-title" id="friends-pane-section-title">ÇEVRİMİÇİ ARKADAŞLAR — <span id="friends-pane-count">0</span></div>
+                        <div class="friends-grid-wrap" id="dashboard-friend-list"></div>
+                    </div>
+
+                    <!-- 2. Pending Requests Pane (Incoming & Outgoing) -->
+                    <div id="dash-pane-requests" class="dash-content-pane" style="display: none;">
+                        <div class="friends-section-title" id="requests-pane-section-title">BEKLEYEN İSTEKLER — <span id="requests-pane-count">0</span></div>
+                        <div class="requests-grid-wrap" id="dashboard-request-list"></div>
+                    </div>
+
+                    <!-- 3. Friend Suggestions Pane -->
+                    <div id="dash-pane-suggestions" class="dash-content-pane" style="display: none;">
+                        <div class="friends-section-title">ORTAK ARKADAŞLARA GÖRE ÖNERİLER — <span id="suggestions-pane-count">0</span></div>
+                        <div class="suggestions-grid-wrap" id="dashboard-suggestions-list"></div>
+                    </div>
+
+                    <!-- 4. Blocked Users Pane -->
+                    <div id="dash-pane-blocked" class="dash-content-pane" style="display: none;">
+                        <div class="friends-section-title">ENGELLENEN KULLANICILAR — <span id="blocked-pane-count">0</span></div>
+                        <div class="blocked-grid-wrap" id="dashboard-blocked-list"></div>
+                    </div>
+
+                    <!-- 5. Add Friend Form Pane -->
+                    <div id="dash-pane-add" class="dash-content-pane" style="display: none;">
+                        <div class="add-friend-box">
+                            <div class="add-friend-header-icon"><i data-lucide="user-plus"></i></div>
+                            <h3>ARKADAŞ EKLE</h3>
+                            <p>Kullanıcı adı (ör: <code>the_kodak</code>) veya Benzersiz Astral ID (<code>astral_...</code>) ile istek gönderin.</p>
+                            <div class="add-friend-input-wrap">
+                                <span class="add-input-icon"><i data-lucide="at-sign"></i></span>
+                                <input type="text" id="add-friend-username-input" placeholder="Kullanıcı adı veya astral_..." autocomplete="off">
+                                <button class="btn primary-btn btn-glow" id="btn-send-friend-req"><i data-lucide="send" class="icon-sm"></i> İstek Gönder</button>
+                            </div>
+                            <div class="error-msg" id="add-friend-error"></div>
+                            <div class="success-msg" id="add-friend-success" style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Channel Message History Area -->
+            <div id="chat-messages-pane" class="chat-pane">
+                <div class="chat-history" id="chat-history">
+                    <!-- Messages populated via JS -->
+                </div>
+
+                <!-- Active Typing Indicator -->
+                <div class="typing-indicator-bar" id="typing-indicator" style="display: none;">
+                    <span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>
+                    <span id="typing-text">Birisi yazıyor...</span>
+                </div>
+
+                <!-- Voice Recording Live Dock -->
+                <div class="voice-recording-dock" id="voice-recording-dock" style="display: none;">
+                    <div class="recording-pulse-indicator"></div>
+                    <span class="recording-time" id="voice-record-timer">00:00</span>
+                    <div class="recording-wave-visualizer">
+                        <div class="rec-bar"></div><div class="rec-bar"></div><div class="rec-bar"></div><div class="rec-bar"></div><div class="rec-bar"></div>
+                    </div>
+                    <span class="recording-status-text">Ses kaydediliyor...</span>
+                    <div class="recording-actions">
+                        <button type="button" class="btn-rec-cancel" id="btn-cancel-voice-record" title="İptal Et"><i data-lucide="trash-2" class="icon-xs"></i> İptal</button>
+                        <button type="button" class="btn-rec-send" id="btn-send-voice-record" title="Kaydı Gönder"><i data-lucide="send" class="icon-xs"></i> Gönder</button>
+                    </div>
+                </div>
+
+                <!-- Active Reply Dock -->
+                <div class="reply-dock" id="reply-dock" style="display: none;">
+                    <div class="reply-preview">
+                        <span class="reply-to-tag">Yanıtlanıyor: <strong id="reply-to-user">@User</strong></span>
+                        <span class="reply-to-text" id="reply-to-text">Alıntılanan mesaj...</span>
+                    </div>
+                    <button class="icon-btn reply-close" id="btn-cancel-reply"><i data-lucide="x" class="icon-xs"></i></button>
+                </div>
+
+                <!-- Enhanced Emoji / Sticker / GIF Popover -->
+                <div class="emoji-popover" id="emoji-picker-popover" style="display: none;">
+                    <div class="emoji-popover-nav">
+                        <div class="emoji-tabs">
+                            <button type="button" class="emoji-tab-btn active" data-tab="standard" title="Standart Emojiler">😀</button>
+                            <button type="button" class="emoji-tab-btn" data-tab="custom" title="Özel Emojiler">✨</button>
+                            <button type="button" class="emoji-tab-btn" data-tab="stickers" title="Stickerlar">🐾</button>
+                            <button type="button" class="emoji-tab-btn" data-tab="gifs" title="GIF'ler">🎬</button>
+                        </div>
+                    </div>
+                    <div class="emoji-search-bar" id="popover-search-wrap" style="display: none;">
+                        <input type="text" id="popover-search-input" placeholder="Sticker veya GIF ara..." autocomplete="off">
+                    </div>
+                    <div class="emoji-popover-content" id="emoji-popover-content-container">
+                        <div class="emoji-sub-categories" id="emoji-sub-cats">
+                            <button type="button" class="sub-cat-btn active" data-cat="smileys">😀</button>
+                            <button type="button" class="sub-cat-btn" data-cat="gestures">👍</button>
+                            <button type="button" class="sub-cat-btn" data-cat="nature">🔥</button>
+                            <button type="button" class="sub-cat-btn" data-cat="objects">🎮</button>
+                            <button type="button" class="sub-cat-btn" data-cat="symbols">❤️</button>
+                        </div>
+                        <div class="emoji-grid" id="emoji-grid-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chat Input Bar -->
+                <div class="chat-input-bar">
+                    <button type="button" class="icon-btn attach-btn" id="btn-attach-file" title="Dosya / Medya Ekle"><i data-lucide="paperclip"></i></button>
+                    <input type="file" id="chat-file-input" style="display: none;" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.zip,.rar,.txt,.json,.csv,.py,.js">
+                    
+                    <button type="button" class="icon-btn voice-memo-btn" id="btn-voice-memo" title="Ses Kaydı Al"><i data-lucide="mic"></i></button>
+                    <button type="button" class="icon-btn code-insert-btn" id="btn-insert-code" title="Kod Bloğu Ekle"><i data-lucide="code"></i></button>
+                    <button type="button" class="icon-btn spoiler-btn" id="btn-toggle-spoiler" title="Spoiler Olarak Ekle (||metin||)"><i data-lucide="eye-off"></i></button>
+
+                    <textarea id="message-input" placeholder="Mesaj yazın... (||spoiler|| veya ```kod```)" rows="1"></textarea>
+                    
+                    <button type="button" class="icon-btn emoji-btn" id="btn-open-emojis" title="Emoji, Sticker & GIF"><i data-lucide="smile"></i></button>
+                    <button type="button" class="icon-btn send-btn" id="btn-send-message" title="Gönder"><i data-lucide="send"></i></button>
+                </div>
+            </div>
+
+            <!-- Live Whiteboard Canvas Area -->
+            <div id="canvas-pane" class="canvas-view-pane" style="display: none;">
+                <div class="canvas-toolbar">
+                    <input type="color" id="canvas-color-picker" value="#8b5cf6">
+                    <input type="range" id="canvas-size-slider" min="1" max="30" value="4">
+                    <button class="btn btn-small" id="btn-clear-canvas"><i data-lucide="trash-2" class="icon-xs"></i> Tuvali Temizle</button>
+                </div>
+                <canvas id="collab-canvas"></canvas>
+            </div>
+
+            <!-- Voice Channel Stage Area -->
+            <div id="voice-pane" class="voice-view-pane" style="display: none;">
+                <div class="voice-header-bar">
+                    <div>
+                        <h2><i data-lucide="volume-2" class="icon-md" style="margin-right: 6px;"></i><span id="voice-channel-name">Ses Odası</span></h2>
+                        <span class="voice-status-tag">Bağlandı</span>
+                    </div>
+                </div>
+                
+                <div class="voice-grid" id="voice-grid">
+                    <div class="voice-participant me" id="participant-me">
+                        <video id="local-video" autoplay muted playsinline></video>
+                        <div class="participant-avatar-overlay" id="local-avatar-overlay">
+                            <div class="voice-avatar" id="local-voice-avatar">A</div>
+                        </div>
+                        <div class="participant-footer">
+                            <span class="participant-name">Sen</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="voice-controls-dock">
+                    <button id="toggle-mic-btn" class="voice-dock-btn active" title="Mikrofon"><i data-lucide="mic" class="icon-sm"></i> Mik</button>
+                    <button id="toggle-deafen-btn" class="voice-dock-btn active" title="Ses"><i data-lucide="headphones" class="icon-sm"></i> Kulaklık</button>
+                    <button id="leave-voice-btn" class="voice-dock-btn danger" title="Ayrıl"><i data-lucide="phone-off" class="icon-sm"></i> Ayrıl</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- 4. Server Members Sidebar (Right Panel) -->
+        <aside class="activity-sidebar" id="activity-sidebar">
+            <div class="members-header">
+                <h3>ÜYELER (<span id="server-members-count">0</span>)</h3>
+            </div>
+            
+            <div class="members-search-wrap">
+                <input type="text" id="members-filter-input" placeholder="Üyelerde ara..." class="search-input-small">
+            </div>
+
+            <div class="members-list-scrollable" id="server-members-list"></div>
+        </aside>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- MODALS & POPUPS -->
+    <!-- =================================================================== -->
+
+    <!-- User Public Profile Modal -->
+    <div id="user-profile-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content profile-modal-card" id="profile-modal-card-container">
+            <button class="icon-btn close-modal-btn modal-close-corner" title="Kapat"><i data-lucide="x"></i></button>
+            <div class="profile-banner" id="modal-profile-banner" style="background-color: #8b5cf6;">
+                <div class="profile-banner-pattern"></div>
+            </div>
+            
+            <div class="profile-header-wrap">
+                <div class="avatar-large-wrap">
+                    <div class="avatar-large" id="modal-profile-avatar">A</div>
+                    <div class="status-dot-large status-online" id="modal-profile-status-dot"></div>
+                </div>
+                <div class="profile-badges-row" id="modal-profile-badges"></div>
+            </div>
+
+            <div class="profile-body">
+                <div class="profile-name-row">
+                    <div>
+                        <h2 id="modal-profile-displayname">Display Name</h2>
+                        <div class="profile-tags-row">
+                            <span class="profile-username-tag" id="modal-profile-username">@username</span>
+                            <span class="profile-age-badge" id="modal-profile-age-badge"><i data-lucide="shield-check" class="icon-xs"></i> <span>Yeni Üye</span></span>
+                        </div>
+                    </div>
+                    <span class="profile-status-mode-badge" id="modal-profile-status-mode">ONLINE</span>
+                </div>
+                
+                <div class="profile-public-id-row">
+                    <span class="id-label">Astral ID:</span>
+                    <code id="modal-profile-public-id">astral_...</code>
+                    <button type="button" class="btn-copy-id" id="btn-profile-copy-id" title="Kopyala"><i data-lucide="copy" class="icon-xs"></i></button>
+                </div>
+
+                <div class="profile-custom-status" id="modal-profile-custom-status">✨ AstralPaws</div>
+                
+                <!-- Profile Navigation Tabs -->
+                <div class="profile-nav-tabs">
+                    <button type="button" class="profile-tab-btn active" data-profile-tab="tab-prof-overview">
+                        <i data-lucide="user" class="icon-xs"></i> Genel Bakış
+                    </button>
+                    <button type="button" class="profile-tab-btn" data-profile-tab="tab-prof-projects">
+                        <i data-lucide="folder-git-2" class="icon-xs"></i> Projeler & Portföy (<span id="modal-profile-proj-count">0</span>)
+                    </button>
+                    <button type="button" class="profile-tab-btn" data-profile-tab="tab-prof-communities">
+                        <i data-lucide="users" class="icon-xs"></i> Topluluklar (<span id="modal-profile-comm-count">0</span>)
+                    </button>
+                    <button type="button" class="profile-tab-btn" data-profile-tab="tab-prof-mutuals">
+                        <i data-lucide="user-check" class="icon-xs"></i> Ortak Arkadaşlar (<span id="modal-profile-mutuals-count">0</span>)
+                    </button>
+                </div>
+
+                <!-- Tab 1: Genel Bakış (Overview) -->
+                <div class="profile-tab-content active" id="tab-prof-overview">
+                    <div class="profile-section">
+                        <h4>HAKKIMDA</h4>
+                        <p id="modal-profile-bio">Henüz bir biyografi yazılmadı.</p>
+                    </div>
+
+                    <!-- Social / Web Links Section -->
+                    <div class="profile-section" id="modal-profile-links-section">
+                        <h4>BAĞLANTILAR</h4>
+                        <div class="profile-links-grid" id="modal-profile-links-wrap">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Badges Detail Showcase -->
+                    <div class="profile-section" id="modal-profile-badges-section">
+                        <h4>ROZETLER</h4>
+                        <div class="profile-badges-detail-grid" id="modal-profile-badges-detail">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Achievements Section -->
+                    <div class="profile-section" id="modal-profile-achievements-section">
+                        <h4>BAŞARIMLAR</h4>
+                        <div class="profile-achievements-grid" id="modal-profile-achievements-wrap">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Member Since -->
+                    <div class="profile-section profile-meta-section">
+                        <h4>HESAP BİLGİSİ</h4>
+                        <div class="profile-meta-row">
+                            <span><i data-lucide="calendar" class="icon-xs"></i> Katılım Tarihi:</span>
+                            <strong id="modal-profile-joined-date">2026-08-28</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Projeler & Portföy -->
+                <div class="profile-tab-content" id="tab-prof-projects" style="display: none;">
+                    <div id="modal-profile-portfolio-info" class="portfolio-header-card" style="display: none;">
+                        <div class="portfolio-badge"><i data-lucide="sparkles" class="icon-xs"></i> Öne Çıkan Portföy</div>
+                        <h3 id="modal-profile-portfolio-title">Portföyüm</h3>
+                        <p id="modal-profile-portfolio-desc"></p>
+                    </div>
+                    <div class="profile-projects-grid" id="modal-profile-projects-grid">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+                <!-- Tab 3: Topluluklar -->
+                <div class="profile-tab-content" id="tab-prof-communities" style="display: none;">
+                    <div class="profile-section">
+                        <h4>OLUŞTURULAN TOPLULUKLAR (<span id="modal-created-servers-count">0</span>)</h4>
+                        <div class="profile-servers-grid" id="modal-profile-created-servers">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+                    <div class="profile-section" style="margin-top: 18px;">
+                        <h4>ORTAK TOPLULUKLAR (<span id="modal-mutual-servers-count">0</span>)</h4>
+                        <div class="profile-servers-grid" id="modal-profile-mutual-servers">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 4: Ortak Arkadaşlar -->
+                <div class="profile-tab-content" id="tab-prof-mutuals" style="display: none;">
+                    <div class="profile-section">
+                        <h4>ORTAK ARKADAŞLAR (<span id="modal-mutual-friends-count">0</span>)</h4>
+                        <div class="profile-mutual-friends-list" id="modal-profile-mutual-friends-list">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Private Note Banner on Profile (Visible only to viewer if note exists) -->
+                <div class="profile-private-note-badge" id="modal-profile-note-preview" style="display: none;">
+                    <div class="note-badge-header">
+                        <span><i data-lucide="sticky-note" class="icon-xs"></i> ÖZEL NOTUNUZ</span>
+                        <button type="button" class="btn-text-action" id="btn-profile-edit-note-inline">Düzenle</button>
+                    </div>
+                    <p id="modal-profile-note-text"></p>
+                </div>
+
+                <!-- Bottom Profile Actions -->
+                <div class="profile-actions" id="modal-profile-actions">
+                    <div class="profile-actions-main">
+                        <button class="btn primary-btn btn-glow" id="btn-profile-send-dm"><i data-lucide="message-square" class="icon-sm"></i> Mesaj Gönder</button>
+                        <button class="btn btn-secondary" id="btn-profile-friend-action" style="display: none;"><i data-lucide="user-plus" class="icon-sm"></i> <span>Arkadaş Ekle</span></button>
+                        <button class="btn btn-danger-subtle" id="btn-profile-reject-action" style="display: none;" title="İsteği Reddet"><i data-lucide="x" class="icon-sm"></i> Reddet</button>
+                    </div>
+                    <div class="profile-actions-secondary" id="modal-profile-secondary-actions" style="display: none;">
+                        <button class="icon-btn action-toggle-btn" id="btn-profile-note-action" title="Özel Not Ekle / Düzenle"><i data-lucide="file-pen-line"></i></button>
+                        <button class="icon-btn action-toggle-btn" id="btn-profile-close-action" title="Yakın Arkadaş"><i data-lucide="heart"></i></button>
+                        <button class="icon-btn action-toggle-btn" id="btn-profile-fav-action" title="Favori"><i data-lucide="star"></i></button>
+                        <button class="icon-btn action-toggle-btn" id="btn-profile-online-notify-action" title="Çevrimiçi Bildirim"><i data-lucide="bell"></i></button>
+                        <button class="icon-btn action-toggle-btn btn-danger-hover" id="btn-profile-block-action" title="Engelle"><i data-lucide="shield-ban"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Friend Private Note Modal -->
+    <div id="friend-note-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content note-modal-card">
+            <button class="icon-btn close-modal-btn modal-close-corner" title="Kapat"><i data-lucide="x"></i></button>
+            <div class="note-modal-header">
+                <div class="note-icon-wrap"><i data-lucide="sticky-note"></i></div>
+                <div>
+                    <h3>Özel Arkadaş Notu</h3>
+                    <p id="friend-note-subtitle">Bu not sadece sizin tarafınızdan görülebilir.</p>
+                </div>
+            </div>
+            <div class="note-modal-body">
+                <input type="hidden" id="friend-note-target-id">
+                <div class="input-group">
+                    <label for="friend-note-textarea">Notunuz (Maksimum 500 karakter)</label>
+                    <textarea id="friend-note-textarea" rows="4" maxlength="500" placeholder="Arkadaşınız hakkında sadece sizin görebileceğiniz özel bir not yazın..."></textarea>
+                </div>
+                <div class="note-modal-footer">
+                    <button type="button" class="btn btn-secondary btn-small" id="btn-clear-friend-note"><i data-lucide="trash-2" class="icon-xs"></i> Notu Sil</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn btn-small" id="btn-cancel-friend-note">İptal</button>
+                        <button type="button" class="btn primary-btn btn-small btn-glow" id="btn-save-friend-note"><i data-lucide="check" class="icon-xs"></i> Kaydet</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- FULL ASTRALPAWS ACCOUNT SETTINGS MODAL -->
+    <!-- =================================================================== -->
+    <div id="settings-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content settings-modal-card">
+            
+            <!-- Settings Navigation Sidebar -->
+            <div class="settings-sidebar">
+                <div class="settings-brand-header">
+                    <h3>HESAP AYARLARI</h3>
+                </div>
+                
+                <div class="settings-nav-item active" data-settings-tab="tab-settings-account">
+                    <span class="nav-icon"><i data-lucide="user"></i></span> Hesabım
+                </div>
+                <div class="settings-nav-item" data-settings-tab="tab-settings-profile">
+                    <span class="nav-icon"><i data-lucide="user-pen"></i></span> Profili Düzenle
+                </div>
+                <div class="settings-nav-item" data-settings-tab="tab-settings-presence">
+                    <span class="nav-icon"><i data-lucide="activity"></i></span> Durum & Varlık
+                </div>
+                <div class="settings-nav-item" data-settings-tab="tab-settings-security">
+                    <span class="nav-icon"><i data-lucide="shield-check"></i></span> Şifre & 2FA
+                </div>
+                <div class="settings-nav-item" data-settings-tab="tab-settings-sessions">
+                    <span class="nav-icon"><i data-lucide="laptop"></i></span> Aktif Oturumlar
+                </div>
+                <div class="settings-nav-item" data-settings-tab="tab-settings-trusted">
+                    <span class="nav-icon"><i data-lucide="shield"></i></span> Güvenilir Cihazlar
+                </div>
+                <div class="settings-nav-item" data-settings-tab="tab-settings-privacy">
+                    <span class="nav-icon"><i data-lucide="eye-off"></i></span> Gizlilik
+                </div>
+                <div class="settings-nav-item" data-settings-tab="tab-settings-appearance">
+                    <span class="nav-icon"><i data-lucide="palette"></i></span> Görünüm & Tema
+                </div>
+                <div class="settings-nav-item danger" data-settings-tab="tab-settings-danger">
+                    <span class="nav-icon"><i data-lucide="alert-triangle"></i></span> Hesap Yönetimi
+                </div>
+
+                <div class="settings-separator"></div>
+                <div class="settings-nav-item logout-item" id="settings-logout-btn">
+                    <span class="nav-icon"><i data-lucide="log-out"></i></span> Çıkış Yap
+                </div>
+                <button class="icon-btn close-modal-btn settings-close-bottom" id="settings-close-btn"><i data-lucide="x"></i> Kapat</button>
+            </div>
+
+            <!-- Settings Main Content Area -->
+            <div class="settings-main-content">
+                <button class="icon-btn modal-top-close close-modal-btn" id="settings-top-close-btn" title="Kapat"><i data-lucide="x"></i></button>
+
+                <!-- 1. TAB: HESABIM (MY ACCOUNT) -->
+                <div class="settings-tab-pane active" id="tab-settings-account">
+                    <h2>Hesabım</h2>
+                    <p class="settings-desc">AstralPaws kimlik ve hesap ayrıntılarınız.</p>
+                    
+                    <!-- Account Hero Card -->
+                    <div class="account-hero-card">
+                        <div class="hero-banner" id="acc-card-banner"></div>
+                        <div class="hero-header">
+                            <div class="hero-avatar-wrap">
+                                <div class="hero-avatar" id="acc-card-avatar">A</div>
+                            </div>
+                            <div class="hero-names">
+                                <h3 id="acc-card-displayname">Display Name</h3>
+                                <span id="acc-card-username">@username</span>
+                            </div>
+                            <button type="button" class="btn btn-small primary-btn btn-glow" id="btn-quick-edit-profile"><i data-lucide="user-pen" class="icon-xs"></i> Profili Düzenle</button>
+                        </div>
+
+                        <div class="account-details-grid">
+                            <div class="detail-box">
+                                <span class="detail-label">BENZERSİZ KULLANICI ID</span>
+                                <div class="detail-val-row">
+                                    <code id="acc-card-public-id">astral_...</code>
+                                    <button type="button" class="btn-copy-id" id="btn-copy-public-id" title="Kopyala"><i data-lucide="copy" class="icon-xs"></i> Kopyala</button>
+                                </div>
+                            </div>
+                            <div class="detail-box">
+                                <span class="detail-label">E-POSTA ADRESİ</span>
+                                <div class="detail-val-row">
+                                    <span id="acc-card-email">user@domain.com</span>
+                                    <span class="status-pill verified"><i data-lucide="check" class="icon-xs"></i> Doğrulandı</span>
+                                </div>
+                            </div>
+                            <div class="detail-box">
+                                <span class="detail-label">HESAP DURUMU</span>
+                                <div class="detail-val-row">
+                                    <span class="status-pill active" id="acc-card-status-pill">Aktif</span>
+                                </div>
+                            </div>
+                            <div class="detail-box">
+                                <span class="detail-label">2FA KORUMASI</span>
+                                <div class="detail-val-row">
+                                    <span class="status-pill" id="acc-card-2fa-pill">Devre Dışı</span>
+                                </div>
+                            </div>
+                            <div class="detail-box">
+                                <span class="detail-label">KAYIT TARİHİ</span>
+                                <div class="detail-val-row">
+                                    <span id="acc-card-created-date">2026-08-28</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. TAB: PROFİLİ DÜZENLE (EDIT PROFILE) -->
+                <div class="settings-tab-pane" id="tab-settings-profile" style="display: none;">
+                    <h2>Profili Düzenle</h2>
+                    <p class="settings-desc">Avatar, banner, görünen isim ve biyografinizi özelleştirin.</p>
+
+                    <!-- Avatar & Banner Upload Section -->
+                    <div class="profile-media-edit-grid">
+                        <div class="media-edit-card">
+                            <h4>Profil Fotoğrafı</h4>
+                            <div class="avatar-preview-box">
+                                <div class="avatar-preview-large" id="avatar-live-preview">A</div>
+                            </div>
+                            <div class="media-btn-row">
+                                <label class="btn btn-small primary-btn" for="avatar-file-input"><i data-lucide="upload" class="icon-xs"></i> Fotoğraf Yükle</label>
+                                <input type="file" id="avatar-file-input" accept="image/png, image/jpeg, image/webp, image/gif" style="display: none;">
+                                <button type="button" class="btn btn-small btn-secondary" id="btn-remove-avatar"><i data-lucide="trash-2" class="icon-xs"></i> Kaldır</button>
+                            </div>
+                            <span class="file-hint">PNG, JPG, WEBP, GIF (Maks 5 MB)</span>
+                        </div>
+
+                        <div class="media-edit-card">
+                            <h4>Profil Banner / Kapağı</h4>
+                            <div class="banner-preview-box" id="banner-live-preview"></div>
+                            <div class="media-btn-row">
+                                <label class="btn btn-small primary-btn" for="banner-file-input"><i data-lucide="image" class="icon-xs"></i> Banner Yükle</label>
+                                <input type="file" id="banner-file-input" accept="image/png, image/jpeg, image/webp, image/gif" style="display: none;">
+                                <button type="button" class="btn btn-small btn-secondary" id="btn-remove-banner"><i data-lucide="trash-2" class="icon-xs"></i> Kaldır</button>
+                            </div>
+                            <span class="file-hint">Geniş görsel veya animasyonlu GIF</span>
+                        </div>
+                    </div>
+
+                    <form id="edit-profile-form" style="margin-top: 20px;">
+                        <div class="input-group">
+                            <label for="edit-displayname">Görünen İsim</label>
+                            <input type="text" id="edit-displayname" placeholder="Profilde görünecek isim..." maxlength="50">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="edit-bio">Biyografi</label>
+                            <textarea id="edit-bio" rows="3" placeholder="Kendiniz hakkında bir şeyler yazın..." maxlength="500"></textarea>
+                            <div class="char-counter"><span id="bio-char-count">0</span> / 500</div>
+                        </div>
+
+                        <div class="form-row-2col">
+                            <div class="input-group">
+                                <label>Avatar Arkaplan Rengi</label>
+                                <input type="color" id="edit-avatar-color" value="#8b5cf6" class="color-picker-input">
+                            </div>
+                            <div class="input-group">
+                                <label>Banner Rengi</label>
+                                <input type="color" id="edit-banner-color" value="#6366f1" class="color-picker-input">
+                            </div>
+                        </div>
+
+                        <!-- 1. Custom Profile Themes -->
+                        <div class="settings-subsection-card" style="margin-top: 20px;">
+                            <h4><i data-lucide="palette" class="icon-xs"></i> Özel Profil Teması</h4>
+                            <p class="settings-desc">Profil kartınızın vurgu rengini ve görsel tasarım stilini özelleştirin.</p>
+                            
+                            <div class="input-group" style="margin-top: 10px;">
+                                <label>Profil Vurgu Rengi (Accent Color)</label>
+                                <div class="color-picker-row">
+                                    <input type="color" id="edit-profile-accent-color" value="#8b5cf6" class="color-picker-input">
+                                    <div class="quick-colors-row">
+                                        <span class="color-chip-btn" data-color="#8b5cf6" style="background: #8b5cf6;" title="Astral Mor"></span>
+                                        <span class="color-chip-btn" data-color="#ec4899" style="background: #ec4899;" title="Neon Pembe"></span>
+                                        <span class="color-chip-btn" data-color="#06b6d4" style="background: #06b6d4;" title="Siber Camgöbeği"></span>
+                                        <span class="color-chip-btn" data-color="#10b981" style="background: #10b981;" title="Zümrüt"></span>
+                                        <span class="color-chip-btn" data-color="#f59e0b" style="background: #f59e0b;" title="Kozmik Altın"></span>
+                                        <span class="color-chip-btn" data-color="#ef4444" style="background: #ef4444;" title="Lazer Kırmızı"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="input-group" style="margin-top: 14px;">
+                                <label>Profil Kartı Teması</label>
+                                <div class="profile-theme-selector-grid">
+                                    <div class="theme-select-card active" data-theme="cyber-glass">
+                                        <span class="theme-badge">Varsayılan</span>
+                                        <strong>Cyber Glass</strong>
+                                        <p>Buzlu cam ve neon kenarlıklar</p>
+                                    </div>
+                                    <div class="theme-select-card" data-theme="neon-glow">
+                                        <span class="theme-badge">Canlı</span>
+                                        <strong>Neon Glow</strong>
+                                        <p>Güçlü neon ışımalı ve canlı hatlar</p>
+                                    </div>
+                                    <div class="theme-select-card" data-theme="minimal-dark">
+                                        <span class="theme-badge">Sade</span>
+                                        <strong>Minimal Dark</strong>
+                                        <p>Koyu ve sofistike mat yüzey</p>
+                                    </div>
+                                    <div class="theme-select-card" data-theme="cosmic-aurora">
+                                        <span class="theme-badge">Özel</span>
+                                        <strong>Cosmic Aurora</strong>
+                                        <p>Kutup ışıkları degrade efekti</p>
+                                    </div>
+                                    <div class="theme-select-card" data-theme="retro-synth">
+                                        <span class="theme-badge">Retro</span>
+                                        <strong>Retro Synth</strong>
+                                        <p>80'ler cyberpunk synthwave</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Profile Links Manager -->
+                        <div class="settings-subsection-card" style="margin-top: 20px;">
+                            <h4><i data-lucide="link" class="icon-xs"></i> Kişisel & Sosyal Bağlantılar</h4>
+                            <p class="settings-desc">Profilinizde görünecek web sitesi ve sosyal medya hesaplarınızı ekleyin.</p>
+                            
+                            <div class="add-link-form-row" style="margin-top: 12px;">
+                                <select id="link-platform-select" class="settings-select-input">
+                                    <option value="website">Kişisel Web Sitesi</option>
+                                    <option value="github">GitHub</option>
+                                    <option value="youtube">YouTube</option>
+                                    <option value="twitch">Twitch</option>
+                                    <option value="instagram">Instagram</option>
+                                    <option value="x">X (Twitter)</option>
+                                    <option value="linkedin">LinkedIn</option>
+                                    <option value="discord">Discord / Diğer</option>
+                                </select>
+                                <input type="text" id="link-title-input" placeholder="Başlık (örn: Portföyüm)" maxlength="50" class="flex-1">
+                                <input type="text" id="link-url-input" placeholder="https://..." class="flex-2">
+                                <button type="button" class="btn primary-btn btn-small" id="btn-add-profile-link"><i data-lucide="plus" class="icon-xs"></i> Ekle</button>
+                            </div>
+
+                            <div class="profile-links-manager-list" id="profile-links-edit-list" style="margin-top: 12px;">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- 3. Projects & Portfolio Manager -->
+                        <div class="settings-subsection-card" style="margin-top: 20px;">
+                            <div class="tab-header-flex">
+                                <div>
+                                    <h4><i data-lucide="folder-git-2" class="icon-xs"></i> Portföy & Favori Projeler</h4>
+                                    <p class="settings-desc">Profilinizde çalışmalarınızı ve projelerinizi sergileyin.</p>
+                                </div>
+                                <label class="switch-wrap">
+                                    <input type="checkbox" id="toggle-portfolio-enabled">
+                                    <span class="slider round"></span>
+                                    <span class="switch-label">Portföyü Göster</span>
+                                </label>
+                            </div>
+
+                            <div id="portfolio-config-container" style="margin-top: 12px;">
+                                <div class="input-group">
+                                    <label for="portfolio-title-input">Portföy Başlığı</label>
+                                    <input type="text" id="portfolio-title-input" placeholder="Öne Çıkan Çalışmalarım..." maxlength="100">
+                                </div>
+                                <div class="input-group">
+                                    <label for="portfolio-desc-input">Portföy Açıklaması</label>
+                                    <textarea id="portfolio-desc-input" rows="2" placeholder="Portföyünüz hakkında kısa bir bilgi..." maxlength="1000"></textarea>
+                                </div>
+                                
+                                <div class="add-project-card" style="margin-top: 14px;">
+                                    <h5>Yeni Proje / Çalışma Ekle</h5>
+                                    <div class="form-row-2col">
+                                        <div class="input-group">
+                                            <label>Proje Başlığı *</label>
+                                            <input type="text" id="proj-title-input" placeholder="Proje Adı" maxlength="100">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Proje Bağlantısı (URL)</label>
+                                            <input type="text" id="proj-url-input" placeholder="https://github.com/...">
+                                        </div>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Kısa Açıklama</label>
+                                        <textarea id="proj-desc-input" rows="2" placeholder="Proje hakkında detaylar..." maxlength="500"></textarea>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Görsel / Önizleme URL (Opsiyonel)</label>
+                                        <input type="text" id="proj-image-input" placeholder="https://... (Önizleme görsel linki)">
+                                    </div>
+                                    <button type="button" class="btn primary-btn btn-small" id="btn-add-profile-project"><i data-lucide="plus" class="icon-xs"></i> Projeyi Ekle</button>
+                                </div>
+
+                                <div class="profile-projects-manager-list" id="profile-projects-edit-list" style="margin-top: 14px;">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="error-msg" id="edit-profile-error"></div>
+                        <div class="success-msg" id="edit-profile-success" style="display: none;"></div>
+                        <button type="submit" class="btn primary-btn btn-glow" style="margin-top: 20px;"><i data-lucide="save" class="icon-sm"></i> Tüm Profil Değişikliklerini Kaydet</button>
+                    </form>
+
+                    <!-- Separate Username Change Box with Cooldown -->
+                    <div class="username-change-card" style="margin-top: 28px;">
+                        <h3>Kullanıcı Adı Değiştir</h3>
+                        <p class="settings-desc">Kullanıcı adı benzersizdir ve mention sistemi için kullanılır.</p>
+                        <div class="input-group">
+                            <label for="edit-username-input">Yeni Kullanıcı Adı</label>
+                            <div class="input-with-icon">
+                                <span class="field-icon"><i data-lucide="at-sign"></i></span>
+                                <input type="text" id="edit-username-input" placeholder="yeni_kullanici_adi" maxlength="30">
+                            </div>
+                        </div>
+                        <div class="error-msg" id="edit-username-error"></div>
+                        <div class="success-msg" id="edit-username-success" style="display: none;"></div>
+                        <button type="button" class="btn btn-secondary" id="btn-save-username"><i data-lucide="check" class="icon-sm"></i> Kullanıcı Adını Güncelle</button>
+                    </div>
+                </div>
+
+                <!-- 3. TAB: DURUM & VARLIK (PRESENCE & CUSTOM STATUS) -->
+                <div class="settings-tab-pane" id="tab-settings-presence" style="display: none;">
+                    <h2>Durum ve Varlık</h2>
+                    <p class="settings-desc">Diğer kullanıcıların sizi nasıl gördüğünü belirleyin.</p>
+
+                    <div class="presence-status-selector-grid">
+                        <div class="status-card-opt active" data-status="online">
+                            <span class="opt-dot status-online"></span>
+                            <div>
+                                <strong>Çevrimiçi</strong>
+                                <p>Normal olarak aktif görünürsünüz.</p>
+                            </div>
+                        </div>
+                        <div class="status-card-opt" data-status="idle">
+                            <span class="opt-dot status-idle"></span>
+                            <div>
+                                <strong>Boşta</strong>
+                                <p>Bilgisayar başından uzaktasınız.</p>
+                            </div>
+                        </div>
+                        <div class="status-card-opt" data-status="dnd">
+                            <span class="opt-dot status-dnd"></span>
+                            <div>
+                                <strong>Rahatsız Etmeyin</strong>
+                                <p>Tüm bildirim sesleri susturulur.</p>
+                            </div>
+                        </div>
+                        <div class="status-card-opt" data-status="invisible">
+                            <span class="opt-dot status-offline"></span>
+                            <div>
+                                <strong>Görünmez</strong>
+                                <p>Çevrimdışı görünürsünüz ancak tam erişiminiz devam eder.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="custom-status-edit-card" style="margin-top: 24px;">
+                        <h3>Özel Durum Mesajı</h3>
+                        <p class="settings-desc">Ne yaptığınızı ifade eden özel bir durum belirleyin.</p>
+
+                        <form id="custom-status-form">
+                            <div class="custom-status-input-row">
+                                <input type="text" id="custom-status-text-input" placeholder="Örn: Kod yazıyor, Toplantıda..." maxlength="100" style="flex: 1;">
+                            </div>
+
+                            <div class="input-group" style="margin-top: 14px;">
+                                <label for="custom-status-duration">Sona Erme Süresi</label>
+                                <select id="custom-status-duration" class="glass-select">
+                                    <option value="never">Kendim temizleyene kadar</option>
+                                    <option value="30m">30 dakika sonra</option>
+                                    <option value="1h">1 saat sonra</option>
+                                    <option value="4h">4 saat sonra</option>
+                                    <option value="today">Bugün sonunda</option>
+                                </select>
+                            </div>
+
+                            <div class="error-msg" id="custom-status-error"></div>
+                            <div class="success-msg" id="custom-status-success" style="display: none;"></div>
+
+                            <div class="btn-row" style="margin-top: 12px; display: flex; gap: 10px;">
+                                <button type="submit" class="btn primary-btn btn-glow"><i data-lucide="save" class="icon-sm"></i> Durumu Kaydet</button>
+                                <button type="button" class="btn btn-secondary" id="btn-clear-custom-status"><i data-lucide="trash-2" class="icon-sm"></i> Durumu Temizle</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 4. TAB: ŞİFRE & 2FA GÜVENLİK (SECURITY) -->
+                <div class="settings-tab-pane" id="tab-settings-security" style="display: none;">
+                    <h2>Şifre ve Güvenlik</h2>
+                    <p class="settings-desc">Hesabınızı iki aşamalı doğrulama ve güçlü şifre ile koruyun.</p>
+
+                    <!-- Change Password Card -->
+                    <div class="security-card">
+                        <h3>Şifre Değiştir</h3>
+                        <form id="change-password-form">
+                            <div class="input-group">
+                                <label for="change-pwd-current">Mevcut Parola</label>
+                                <div class="input-with-icon">
+                                    <span class="field-icon"><i data-lucide="lock"></i></span>
+                                    <input type="password" id="change-pwd-current" required placeholder="Mevcut parolanız...">
+                                    <button type="button" class="btn-toggle-pwd" data-target="change-pwd-current" title="Göster"><i data-lucide="eye"></i></button>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="change-pwd-new">Yeni Parola</label>
+                                <div class="input-with-icon">
+                                    <span class="field-icon"><i data-lucide="lock"></i></span>
+                                    <input type="password" id="change-pwd-new" required placeholder="En az 6 karakter...">
+                                    <button type="button" class="btn-toggle-pwd" data-target="change-pwd-new" title="Göster"><i data-lucide="eye"></i></button>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="change-pwd-confirm">Yeni Parola Tekrarı</label>
+                                <div class="input-with-icon">
+                                    <span class="field-icon"><i data-lucide="lock-keyhole"></i></span>
+                                    <input type="password" id="change-pwd-confirm" required placeholder="Yeni parolayı tekrar girin...">
+                                    <button type="button" class="btn-toggle-pwd" data-target="change-pwd-confirm" title="Göster"><i data-lucide="eye"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="auth-options-row" style="margin-bottom: 14px;">
+                                <label class="remember-checkbox-label">
+                                    <input type="checkbox" id="change-pwd-logout-others" checked>
+                                    <span class="custom-checkbox"></span>
+                                    <span class="checkbox-text">Diğer tüm cihazlardaki oturumları sonlandır</span>
+                                </label>
+                            </div>
+
+                            <div class="error-msg" id="change-pwd-error"></div>
+                            <div class="success-msg" id="change-pwd-success" style="display: none;"></div>
+                            <button type="submit" class="btn primary-btn btn-glow"><i data-lucide="shield-check" class="icon-sm"></i> Şifreyi Güncelle</button>
+                        </form>
+                    </div>
+
+                    <!-- Two-Factor Authentication (2FA) Card -->
+                    <div class="security-card" style="margin-top: 24px;">
+                        <div class="twofa-header-row">
+                            <div>
+                                <h3>İki Aşamalı Doğrulama (2FA - TOTP)</h3>
+                                <p class="settings-desc">Google Authenticator, Microsoft Authenticator veya Authy gibi uygulamalarla hesabınıza ekstra güvenlik katmanı ekleyin.</p>
+                            </div>
+                            <span class="status-pill" id="security-2fa-status-pill">Devre Dışı</span>
+                        </div>
+
+                        <!-- 2FA Disabled View -> Setup Button -->
+                        <div id="twofa-disabled-view">
+                            <button type="button" class="btn primary-btn btn-glow" id="btn-start-2fa-setup"><i data-lucide="shield-plus" class="icon-sm"></i> 2FA'yı Etkinleştir</button>
+                        </div>
+
+                        <!-- 2FA Enabled View -> Recovery Codes and Disable Button -->
+                        <div id="twofa-enabled-view" style="display: none;">
+                            <div class="twofa-active-info">
+                                <p><i data-lucide="check-circle" class="icon-xs" style="color: var(--success); margin-right: 4px;"></i> İki aşamalı doğrulama hesabınızda aktif durumda.</p>
+                                <div class="recovery-codes-summary-row">
+                                    <span>Kullanılabilir Kurtarma Kodları: <strong id="recovery-codes-count">10</strong> adet kaldı</span>
+                                    <button type="button" class="btn btn-small btn-secondary" id="btn-open-recovery-modal"><i data-lucide="key-round" class="icon-xs"></i> Kodları Görüntüle / Yenile</button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-danger btn-small" id="btn-disable-2fa-prompt" style="margin-top: 14px;"><i data-lucide="shield-alert" class="icon-xs"></i> 2FA'yı Devre Dışı Bırak</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. TAB: AKTİF OTURUMLAR (SESSIONS) -->
+                <div class="settings-tab-pane" id="tab-settings-sessions" style="display: none;">
+                    <div class="tab-header-flex">
+                        <div>
+                            <h2>Aktif Oturumlar</h2>
+                            <p class="settings-desc">Hesabınıza bağlı tüm cihaz ve tarayıcı oturumları.</p>
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-small" id="btn-revoke-other-sessions"><i data-lucide="log-out" class="icon-xs"></i> Diğer Cihazlardan Çıkış Yap</button>
+                    </div>
+
+                    <div class="sessions-list-wrap" id="active-sessions-list">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+                <!-- 6. TAB: GÜVENİLİR CİHAZLAR (TRUSTED DEVICES) -->
+                <div class="settings-tab-pane" id="tab-settings-trusted" style="display: none;">
+                    <div class="tab-header-flex">
+                        <div>
+                            <h2>Güvenilir Cihazlar</h2>
+                            <p class="settings-desc">2FA doğrulaması 30 gün boyunca istenmeyecek kayıtlı cihazlarınız.</p>
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-small" id="btn-revoke-all-trusted"><i data-lucide="trash-2" class="icon-xs"></i> Tümünü Kaldır</button>
+                    </div>
+
+                    <div class="trusted-devices-list-wrap" id="trusted-devices-list">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+                <!-- 7. TAB: GİZLİLİK (PRIVACY) -->
+                <div class="settings-tab-pane" id="tab-settings-privacy" style="display: none;">
+                    <h2>Gizlilik Ayarları</h2>
+                    <p class="settings-desc">Profil ve aktivite görünürlüğünüzü yönetin.</p>
+
+                    <div class="privacy-option-card">
+                        <h4>Son Görülme Zamanı (Last Seen)</h4>
+                        <p class="settings-desc">En son ne zaman çevrimiçi olduğunuzu kimlerin görebileceğini seçin:</p>
+                        
+                        <div class="radio-options-group">
+                            <label class="radio-label">
+                                <input type="radio" name="last_seen_privacy" value="everyone" checked>
+                                <span><i data-lucide="globe" class="icon-xs"></i> Herkes görebilir</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="last_seen_privacy" value="friends_only">
+                                <span><i data-lucide="users" class="icon-xs"></i> Sadece arkadaşlarım görebilir</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="last_seen_privacy" value="nobody">
+                                <span><i data-lucide="lock" class="icon-xs"></i> Hiç kimse göremez</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="privacy-option-card" style="margin-top: 18px;">
+                        <div class="tab-header-flex">
+                            <div>
+                                <h4><i data-lucide="shield" class="icon-xs"></i> Topluluk Görünürlüğü</h4>
+                                <p class="settings-desc">Katıldığınız toplulukların ve sunucuların profilinizi ziyaret eden diğer kullanıcılara gösterilip gösterilmeyeceğini belirleyin.</p>
+                            </div>
+                            <label class="switch-wrap">
+                                <input type="checkbox" id="privacy-hide-communities">
+                                <span class="slider round"></span>
+                                <span class="switch-label">Toplulukları Gizle</span>
+                            </label>
+                        </div>
+                        <p class="file-hint" style="margin-top: 6px;">Etkinleştirildiğinde, diğer kullanıcılar profilinizde katıldığınız veya oluşturduğunuz toplulukları göremez.</p>
+                    </div>
+
+                    <div class="success-msg" id="privacy-success" style="display: none; margin-top: 14px;"></div>
+                    <button type="button" class="btn primary-btn btn-glow" id="btn-save-privacy" style="margin-top: 14px;"><i data-lucide="save" class="icon-sm"></i> Gizlilik Ayarlarını Kaydet</button>
+                </div>
+
+                <!-- 8. TAB: GÖRÜNÜM & TEMALAR (APPEARANCE) -->
+                <div class="settings-tab-pane" id="tab-settings-appearance" style="display: none;">
+                    <h2>Görünüm ve Renk Temaları</h2>
+                    <p class="settings-desc">AstralPaws için zevkinize uygun bir renk paleti seçin.</p>
+                    
+                    <div class="themes-grid">
+                        <div class="theme-card active" data-theme="modern-dark">
+                            <div class="theme-preview" style="background: linear-gradient(135deg, #0e1015, #181b26, #8b5cf6);"></div>
+                            <h4>🌌 Astral Dark</h4>
+                            <span>Obsidian & Neon Indigo</span>
+                        </div>
+                        <div class="theme-card" data-theme="midnight-obsidian">
+                            <div class="theme-preview" style="background: linear-gradient(135deg, #08090c, #101217, #3b82f6);"></div>
+                            <h4>🌑 Midnight Sapphire</h4>
+                            <span>Saf Siyah & Safir Mavi</span>
+                        </div>
+                        <div class="theme-card" data-theme="slate-enterprise">
+                            <div class="theme-preview" style="background: linear-gradient(135deg, #18191f, #20222b, #6366f1);"></div>
+                            <h4>💼 Slate Enterprise</h4>
+                            <span>Minimalist Koyu Gri & Mor</span>
+                        </div>
+                        <div class="theme-card" data-theme="nordic-forest">
+                            <div class="theme-preview" style="background: linear-gradient(135deg, #0b1411, #121e1a, #10b981);"></div>
+                            <h4>🌲 Nordic Emerald</h4>
+                            <span>Zümrüt Yeşili & Çam</span>
+                        </div>
+                        <div class="theme-card" data-theme="deep-ocean">
+                            <div class="theme-preview" style="background: linear-gradient(135deg, #09121f, #0f1b2c, #0284c7);"></div>
+                            <h4>🌊 Deep Ocean</h4>
+                            <span>Okyanus Derinliği & Gökyüzü</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 9. TAB: HESAP YÖNETİMİ (DANGER ZONE) -->
+                <div class="settings-tab-pane" id="tab-settings-danger" style="display: none;">
+                    <h2 style="color: var(--danger);">Hesap Yönetimi</h2>
+                    <p class="settings-desc">Hesabınızı geçici olarak devre dışı bırakabilir veya kalıcı olarak silebilirsiniz.</p>
+
+                    <!-- Disable Account Card -->
+                    <div class="danger-card">
+                        <div class="danger-card-info">
+                            <h4>Hesabı Geçici Olarak Devre Dışı Bırak</h4>
+                            <p>Hesabınız dondurulur, tüm aktif oturumlar kapatılır ve profiliniz diğer kullanıcılara gizlenir. Dilediğiniz zaman tekrar giriş yaparak hesabınızı anında aktifleştirebilirsiniz.</p>
+                        </div>
+                        <button type="button" class="btn btn-danger-outline" id="btn-prompt-disable-account"><i data-lucide="pause-circle" class="icon-sm"></i> Hesabı Devre Dışı Bırak</button>
+                    </div>
+
+                    <!-- Delete Account Card -->
+                    <div class="danger-card" style="margin-top: 18px;">
+                        <div class="danger-card-info">
+                            <h4>Hesabı Kalıcı Olarak Sil</h4>
+                            <p>Hesabınız <strong>14 günlük geri dönüş süresi</strong> (grace period) ile silinmek üzere planlanır. 14 gün içinde giriş yaparak silme talebini iptal edebilirsiniz. 14 günün sonunda tüm verileriniz kalıcı olarak silinir veya anonimleştirilir.</p>
+                        </div>
+                        <button type="button" class="btn btn-danger" id="btn-prompt-delete-account"><i data-lucide="trash-2" class="icon-sm"></i> Hesabı Sil</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- 2FA SETUP MODAL -->
+    <!-- =================================================================== -->
+    <div id="twofa-setup-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content twofa-setup-card">
+            <button class="icon-btn close-modal-btn modal-close-corner"><i data-lucide="x"></i></button>
+            <div class="twofa-modal-header">
+                <div class="twofa-icon-large"><i data-lucide="shield-check"></i></div>
+                <h2>İki Aşamalı Doğrulama Kurulumu</h2>
+                <p>Google Authenticator, Microsoft Authenticator veya 1Password ile QR kodu tarayın:</p>
+            </div>
+
+            <div class="qr-code-box">
+                <img id="twofa-qr-image" src="" alt="2FA QR Kodu">
+            </div>
+
+            <div class="manual-secret-wrap">
+                <span>Veya anahtarı manuel girin:</span>
+                <code id="twofa-secret-display">SECRET_KEY</code>
+            </div>
+
+            <form id="twofa-verify-setup-form" style="margin-top: 20px;">
+                <div class="input-group" style="text-align: center;">
+                    <label for="twofa-setup-code">Uygulamadaki 6 Haneli Doğrulama Kodunu Girin</label>
+                    <input type="text" id="twofa-setup-code" class="otp-input" maxlength="6" placeholder="• • • • • •" required autocomplete="one-time-code">
+                </div>
+                <div class="error-msg" id="twofa-setup-error"></div>
+                <button type="submit" class="btn primary-btn btn-full btn-glow"><i data-lucide="shield-check" class="icon-sm"></i> Doğrula ve Etkinleştir</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- RECOVERY CODES MODAL -->
+    <!-- =================================================================== -->
+    <div id="recovery-codes-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content recovery-modal-card">
+            <button class="icon-btn close-modal-btn modal-close-corner"><i data-lucide="x"></i></button>
+            <div class="twofa-modal-header">
+                <div class="twofa-icon-large"><i data-lucide="file-key"></i></div>
+                <h2>Hesap Kurtarma Kodları</h2>
+                <p>Bu kodlar telefonunuzu veya Authenticator uygulamanızı kaybettiğinizde hesabınıza giriş yapmanızı sağlar. Her kod <strong>yalnızca bir kez</strong> kullanılabilir.</p>
+            </div>
+
+            <div class="recovery-codes-grid" id="recovery-codes-grid">
+                <!-- 10 codes populated via JS -->
+            </div>
+
+            <div class="recovery-actions-row">
+                <button type="button" class="btn primary-btn btn-small" id="btn-download-recovery-codes"><i data-lucide="download" class="icon-xs"></i> Kodları İndir (.txt)</button>
+                <button type="button" class="btn btn-secondary btn-small" id="btn-copy-recovery-codes"><i data-lucide="copy" class="icon-xs"></i> Kopyala</button>
+                <button type="button" class="btn btn-danger-outline btn-small" id="btn-regenerate-recovery-codes"><i data-lucide="refresh-cw" class="icon-xs"></i> Yeni Kodlar Üret</button>
+            </div>
+            
+            <p class="recovery-warning-text"><i data-lucide="alert-triangle" class="icon-xs"></i> Yeni kod ürettiğinizde eski kullanılmamış tüm kodlarınız geçersiz olur.</p>
+        </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- DANGER CONFIRMATION MODAL -->
+    <!-- =================================================================== -->
+    <div id="danger-confirm-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content danger-confirm-card">
+            <button class="icon-btn close-modal-btn modal-close-corner"><i data-lucide="x"></i></button>
+            <h2 id="danger-modal-title">İşlemi Onaylayın</h2>
+            <p id="danger-modal-desc">Bu işlem için lütfen mevcut şifrenizi girin.</p>
+            
+            <form id="danger-action-form">
+                <div class="input-group">
+                    <label for="danger-pwd-input">Mevcut Parola</label>
+                    <div class="input-with-icon">
+                        <span class="field-icon"><i data-lucide="lock"></i></span>
+                        <input type="password" id="danger-pwd-input" required placeholder="Parolanızı girin...">
+                    </div>
+                </div>
+                <div class="error-msg" id="danger-modal-error"></div>
+                <div class="modal-btn-row">
+                    <button type="submit" class="btn btn-danger" id="btn-danger-modal-confirm"><i data-lucide="check" class="icon-sm"></i> Onayla</button>
+                    <button type="button" class="btn btn-secondary" id="btn-danger-modal-cancel"><i data-lucide="x" class="icon-sm"></i> İptal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Soundboard Modal -->
+    <div id="soundboard-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content soundboard-modal-card">
+            <div class="modal-header">
+                <h2>Ses Tahtası</h2>
+                <button class="icon-btn close-modal-btn"><i data-lucide="x"></i></button>
+            </div>
+            <div class="soundboard-grid" id="soundboard-pads-grid">
+                <button class="sound-pad" data-sound="airhorn"><i data-lucide="megaphone" class="icon-sm"></i> Airhorn</button>
+                <button class="sound-pad" data-sound="gg"><i data-lucide="trophy" class="icon-sm"></i> GG Victory</button>
+                <button class="sound-pad" data-sound="bruh"><i data-lucide="skull" class="icon-sm"></i> Bruh</button>
+                <button class="sound-pad" data-sound="badumtss"><i data-lucide="disc" class="icon-sm"></i> Ba-Dum-Tss</button>
+                <button class="sound-pad" data-sound="victory"><i data-lucide="sparkles" class="icon-sm"></i> Level Up</button>
+                <button class="sound-pad" data-sound="wow"><i data-lucide="star" class="icon-sm"></i> Wow</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pinned Messages Modal -->
+    <div id="pins-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content pins-modal-card">
+            <div class="modal-header">
+                <h2>Sabitlenmiş Mesajlar</h2>
+                <button class="icon-btn close-modal-btn"><i data-lucide="x"></i></button>
+            </div>
+            <div class="pins-list-scrollable" id="pins-list-container"></div>
+        </div>
+    </div>
+
+    <!-- Emoji Popover -->
+    <div id="emoji-picker-popover" class="emoji-popover" style="display: none;">
+        <div class="emoji-tabs">
+            <button class="emoji-tab-btn active" data-cat="smileys">😀</button>
+            <button class="emoji-tab-btn" data-cat="gestures">👍</button>
+            <button class="emoji-tab-btn" data-cat="nature">🔥</button>
+            <button class="emoji-tab-btn" data-cat="objects">🚀</button>
+            <button class="emoji-tab-btn" data-cat="symbols">⚡</button>
+        </div>
+        <div class="emoji-grid" id="emoji-grid-container"></div>
+    </div>
+
+    <!-- Add Server Modal -->
+    <div id="add-server-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Sunucu Oluştur veya Katıl</h2>
+                <button class="icon-btn close-modal-btn"><i data-lucide="x"></i></button>
+            </div>
+            <div class="tabs">
+                <button class="tab-btn active" id="tab-create-server">Yeni Oluştur</button>
+                <button class="tab-btn" id="tab-join-server">Kod ile Katıl</button>
+            </div>
+            
+            <div id="create-server-view">
+                <div class="input-group">
+                    <label>Sunucu Adı</label>
+                    <input type="text" id="create-server-input" placeholder="Örn: Astral Topluluk" autocomplete="off">
+                </div>
+                <div class="error-msg" id="create-server-msg"></div>
+                <button id="submit-create-server-btn" class="btn primary-btn btn-full btn-glow"><i data-lucide="plus" class="icon-sm"></i> Oluştur</button>
+            </div>
+
+            <div id="join-server-view" style="display: none;">
+                <div class="input-group">
+                    <label>Davet Kodu</label>
+                    <input type="text" id="join-server-input" placeholder="Örn: ASTRAL01" autocomplete="off">
+                </div>
+                <div class="error-msg" id="join-server-msg"></div>
+                <button id="submit-join-server-btn" class="btn primary-btn btn-full btn-glow"><i data-lucide="log-in" class="icon-sm"></i> Sunucuya Katıl</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Channel Modal -->
+    <div id="add-channel-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Kanal Oluştur</h2>
+                <button class="icon-btn close-modal-btn"><i data-lucide="x"></i></button>
+            </div>
+            <div class="input-group">
+                <label>Kanal Adı</label>
+                <input type="text" id="create-channel-input" placeholder="Örn: duyurular, sohbet" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>Kanal Türü</label>
+                <select id="create-channel-type" class="glass-select">
+                    <option value="text">Metin Kanalı</option>
+                    <option value="canvas">Canlı Tuval</option>
+                    <option value="voice">Ses Kanalı</option>
+                </select>
+            </div>
+            <div class="error-msg" id="create-channel-msg"></div>
+            <button id="submit-create-channel-btn" class="btn primary-btn btn-full btn-glow"><i data-lucide="plus" class="icon-sm"></i> Kanalı Oluştur</button>
+        </div>
+    </div>
+
+    <!-- Create Group Modal -->
+    <div id="create-group-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content modal-md">
+            <div class="modal-header">
+                <div class="modal-title-with-icon">
+                    <div class="header-icon-box"><i data-lucide="users"></i></div>
+                    <div>
+                        <h2>Yeni Grup Oluştur</h2>
+                        <span class="modal-sub">Arkadaşlarınla özel bir grup sohbeti başlat</span>
+                    </div>
+                </div>
+                <button type="button" class="icon-btn close-modal-btn" title="Kapat"><i data-lucide="x"></i></button>
+            </div>
+            
+            <form id="create-group-form">
+                <div class="input-group">
+                    <label for="group-name-input">Grup Adı</label>
+                    <div class="input-with-icon">
+                        <span class="field-icon"><i data-lucide="hash"></i></span>
+                        <input type="text" id="group-name-input" placeholder="Örn: Proje Ekibi, Kozmik Sohbet" required maxlength="100" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Arkadaşları Seç (<span id="create-group-selected-count">0</span> seçildi)</label>
+                    <div class="group-friends-checklist-wrap" id="create-group-friends-checklist">
+                        <!-- Populated dynamically via JS from friends list -->
+                    </div>
+                </div>
+
+                <div class="error-msg" id="create-group-error"></div>
+                
+                <div class="modal-actions-dual">
+                    <button type="button" class="btn btn-secondary close-modal-btn">İptal</button>
+                    <button type="submit" class="btn primary-btn btn-glow" id="btn-submit-create-group"><i data-lucide="check" class="icon-sm"></i> Grubu Oluştur</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Group Members & Settings Modal -->
+    <div id="group-members-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content modal-md">
+            <div class="modal-header">
+                <div class="modal-title-with-icon">
+                    <div class="header-icon-box" id="group-modal-icon-box"><i data-lucide="users"></i></div>
+                    <div>
+                        <h2 id="group-modal-title">Grup Bilgileri</h2>
+                        <span class="modal-sub" id="group-modal-sub">3 Üye</span>
+                    </div>
+                </div>
+                <button type="button" class="icon-btn close-modal-btn" title="Kapat"><i data-lucide="x"></i></button>
+            </div>
+
+            <!-- Group Rename / Settings (Owner & Admin) -->
+            <div class="group-settings-section" id="group-settings-edit-box" style="display: none;">
+                <div class="input-group">
+                    <label for="edit-group-name-input">Grup İsmini Değiştir</label>
+                    <div class="input-row-action">
+                        <input type="text" id="edit-group-name-input" placeholder="Grup adı..." maxlength="100" autocomplete="off">
+                        <button type="button" class="btn btn-small primary-btn" id="btn-save-group-name">Kaydet</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Member Section -->
+            <div class="group-add-member-section" id="group-add-member-box">
+                <div class="input-group">
+                    <label>Gruba Arkadaş Ekle</label>
+                    <div class="input-row-action">
+                        <select id="group-add-friend-select" class="glass-select">
+                            <option value="">Arkadaş seçin...</option>
+                        </select>
+                        <button type="button" class="btn btn-small primary-btn" id="btn-confirm-add-group-member"><i data-lucide="user-plus" class="icon-xs"></i> Ekle</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Members List -->
+            <div class="group-members-container">
+                <div class="friends-section-title">GRUP ÜYELERİ</div>
+                <div class="group-members-scroll" id="group-members-list-body">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Leave Group Danger Zone -->
+            <div class="group-danger-section">
+                <button type="button" class="btn btn-danger-ghost btn-full" id="btn-leave-group-action"><i data-lucide="log-out" class="icon-xs"></i> Gruptan Ayrıl</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forward Message Modal -->
+    <div id="forward-message-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <div class="modal-title-with-icon">
+                    <div class="header-icon-box"><i data-lucide="forward"></i></div>
+                    <div>
+                        <h2>Mesajı İlet</h2>
+                        <span class="modal-sub">İletmek istediğiniz sohbeti seçin</span>
+                    </div>
+                </div>
+                <button type="button" class="icon-btn close-modal-btn" title="Kapat"><i data-lucide="x"></i></button>
+            </div>
+
+            <!-- Message Preview Snippet -->
+            <div class="forward-preview-box" id="forward-preview-snippet">
+                <div class="forward-preview-author" id="forward-preview-author">@User</div>
+                <div class="forward-preview-text" id="forward-preview-text">İletilen mesaj...</div>
+            </div>
+
+            <div class="input-group">
+                <label>Hedef Sohbet</label>
+                <div class="forward-conversations-list" id="forward-conversations-target-list">
+                    <!-- List of conversations/DMs/Groups -->
+                </div>
+            </div>
+
+            <div class="error-msg" id="forward-error"></div>
+            
+            <div class="modal-actions-dual">
+                <button type="button" class="btn btn-secondary close-modal-btn">İptal</button>
+                <button type="button" class="btn primary-btn btn-glow" id="btn-confirm-forward" disabled><i data-lucide="send" class="icon-sm"></i> İlet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insert Code Snippet Modal -->
+    <div id="code-snippet-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content modal-md">
+            <div class="modal-header">
+                <div class="modal-title-with-icon">
+                    <div class="header-icon-box"><i data-lucide="code"></i></div>
+                    <div>
+                        <h2>Kod Bloğu Ekle</h2>
+                        <span class="modal-sub">Programlama dili ve kod içeriğini girin</span>
+                    </div>
+                </div>
+                <button type="button" class="icon-btn close-modal-btn" title="Kapat"><i data-lucide="x"></i></button>
+            </div>
+
+            <div class="input-group">
+                <label for="code-snippet-lang">Programlama Dili</label>
+                <select id="code-snippet-lang" class="glass-select">
+                    <option value="javascript">JavaScript (js)</option>
+                    <option value="python">Python (py)</option>
+                    <option value="typescript">TypeScript (ts)</option>
+                    <option value="html">HTML</option>
+                    <option value="css">CSS</option>
+                    <option value="json">JSON</option>
+                    <option value="sql">SQL</option>
+                    <option value="cpp">C++</option>
+                    <option value="csharp">C#</option>
+                    <option value="rust">Rust</option>
+                    <option value="go">Go</option>
+                    <option value="bash">Bash / Shell</option>
+                    <option value="text">Düz Metin (Plain Text)</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="code-snippet-body">Kod İçeriği</label>
+                <textarea id="code-snippet-body" class="code-editor-textarea" placeholder="// Kodunuzu buraya yazın veya yapıştırın..." rows="8"></textarea>
+            </div>
+
+            <div class="modal-actions-dual">
+                <button type="button" class="btn btn-secondary close-modal-btn">İptal</button>
+                <button type="button" class="btn primary-btn btn-glow" id="btn-insert-code-confirm"><i data-lucide="check" class="icon-sm"></i> Koda Dönüştür ve Ekle</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Message Choice Modal -->
+    <div id="delete-message-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <div class="modal-title-with-icon">
+                    <div class="header-icon-box danger-icon"><i data-lucide="trash-2"></i></div>
+                    <div>
+                        <h2>Mesajı Sil</h2>
+                        <span class="modal-sub">Mesajı silme şeklinizi seçin</span>
+                    </div>
+                </div>
+                <button type="button" class="icon-btn close-modal-btn" title="Kapat"><i data-lucide="x"></i></button>
+            </div>
+
+            <p class="modal-body-p">Bu mesajı sadece kendi ekranınızdan gizleyebilir veya yetkiniz varsa herkes için silebilirsiniz.</p>
+
+            <div class="delete-choices-stack">
+                <button type="button" class="delete-choice-card" id="btn-delete-for-me">
+                    <div class="choice-icon"><i data-lucide="eye-off"></i></div>
+                    <div class="choice-info">
+                        <strong>Sadece Benden Sil</strong>
+                        <span>Mesaj yalnızca sizin ekranınızda gizlenir, diğer kullanıcılar görmeye devam eder.</span>
+                    </div>
+                </button>
+
+                <button type="button" class="delete-choice-card danger" id="btn-delete-for-everyone" style="display: none;">
+                    <div class="choice-icon"><i data-lucide="trash-2"></i></div>
+                    <div class="choice-info">
+                        <strong>Herkesten Sil</strong>
+                        <span>Mesaj tüm sohbet katılımcılarından kalıcı olarak kaldırılır.</span>
+                    </div>
+                </button>
+            </div>
+
+            <div class="modal-actions-single">
+                <button type="button" class="btn btn-secondary close-modal-btn">Vazgeç</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Media / Image Lightbox Modal -->
+    <div id="lightbox-modal" class="lightbox-overlay" style="display: none;" onclick="this.style.display='none'">
+        <button class="lightbox-close-btn" onclick="document.getElementById('lightbox-modal').style.display='none'"><i data-lucide="x"></i></button>
+        <div class="lightbox-content-wrap" onclick="event.stopPropagation()">
+            <img src="" id="lightbox-img" alt="Enlarged Media">
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="{{ url_for('static', filename='script.js') }}?v=2.2.1"></script>
+</body>
+</html>
